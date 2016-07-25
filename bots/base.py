@@ -39,7 +39,7 @@ class RequestHandler(object):
         """
         Protected attribute to log the data,
         pass an dict with the data to be logged.
-        
+
         :param kwargs:
         :return: None
         """
