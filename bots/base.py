@@ -20,13 +20,29 @@ class BadUrl(Exception):
 
 
 class RequestHandler(object):
+    """
+    Request handler for the site urls
 
+    ..note::
+        This objects logs the inaccessible urls automatically to
+        the mongo database.
+
+    :param: url: Any url to be requested
+    :type: url: unicode or str
+    """
     def __init__(self, url):
         self.url = url
         self.data = None
         self.__request_control = False
 
     def _request_log(self, **kwargs):
+        """
+        Protected attribute to log the data,
+        pass an dict with the data to be logged.
+        
+        :param kwargs:
+        :return: None
+        """
         request_log_data = {"set__updated_at": datetime.utcnow(),
                             "set__access_success": False,
                             "set__status_code": None,
