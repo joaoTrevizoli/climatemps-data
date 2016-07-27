@@ -1,10 +1,10 @@
-__author__ = 'joao'
-
 import requests
 from lxml import html
 from time import sleep
 from datetime import datetime
-from models.base import AccessControl, ErrorLog
+from models import AccessControl, ErrorLog
+
+__author__ = 'João Trevizoli Esteves'
 
 
 class StatusError(Exception):
