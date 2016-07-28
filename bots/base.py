@@ -3,20 +3,10 @@ from lxml import html
 from time import sleep
 from datetime import datetime
 from models import AccessControl, ErrorLog
+from bots.botsExceptions import *
+
 
 __author__ = 'João Trevizoli Esteves'
-
-
-class StatusError(Exception):
-    pass
-
-
-class BadXpath(Exception):
-    pass
-
-
-class BadUrl(Exception):
-    pass
 
 
 class RequestHandler(object):
@@ -30,15 +20,16 @@ class RequestHandler(object):
     :param: url: Any url to be requested
     :type: url: unicode or str
     """
-    def __init__(self, url):
+    def __init__(self, url, print_errors=False):
         self.url = url
+        self.print_errors = print_errors
         self.data = None
         self.__request_control = False
 
     def _request_log(self, **kwargs):
         """
-        Protected attribute to log the data,
-        pass an dict with the data to be logged.
+        Protected attribute to log the the historic of requests
+        done by the class, pass an dict with the data to be logged.
 
         :param kwargs:
         :return: None
@@ -54,12 +45,17 @@ class RequestHandler(object):
             else:
                 AccessControl.objects(url=self.url).update(new=True, upsert=True, **request_log_data)
         except Exception as e:
-            print(e)
+            error_info = ErrorInfo()
+            self._error_log(str(e), error_info.file_name, error_info.line_number)
+            if self.print_errors:
+                print("Exception: {}, at line {}, file {}".format(e, error_info.line_number, error_info.file_name))
 
-    def _error_log(self, exception):
+    def _error_log(self, exception, file_name, line_number):
         error_log = {'url': self.url,
                      'created_at': datetime.utcnow(),
-                     'exception': exception}
+                     'exception': exception,
+                     'file_name': file_name,
+                     'line_number': line_number}
         ErrorLog(**error_log).save()
 
     def _page_request(self):
@@ -77,14 +73,21 @@ class RequestHandler(object):
                     access_tries = 3
                     request_log_data["set__status_code"] = 200
                     request_log_data["set__access_success"] = True
+                    request_log_data["set__content"] = self.data.text
                     self._request_log(**request_log_data)
                     self.__request_control = True
                 except StatusError:
-                    self._error_log('StatusError')
+                    error_info = ErrorInfo()
+                    self._error_log('StatusError', error_info.file_name, error_info.line_number)
                     request_log_data["set__status_code"] = self.data.status_code
+                    if self.print_errors:
+                        print("StatusError: {}".format(self.data.status_code))
                 sleep(2)
             except Exception as e:
-                self._error_log(str(e))
+                error_info = ErrorInfo()
+                self._error_log(str(e), error_info.file_name, error_info.line_number)
+                if self.print_errors:
+                    print("Exception: {}, at line {}, file {}".format(e, error_info.line_number, error_info.file_name))
             access_tries += 1
 
         if self.__request_control:
@@ -98,6 +101,7 @@ class RequestHandler(object):
         try:
             return html.fromstring(self.data.text).xpath(xpath)[0]
         except:
-            self._error_log('BadXpath')
+            error_info = ErrorInfo()
+            self._error_log('BadXpath', error_info.file_name, error_info.line_number)
             raise BadXpath(u'This is an invalid Xpath, '
                            u'nothing was found in this node.')
