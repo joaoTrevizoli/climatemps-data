@@ -1,5 +1,5 @@
 from mongoengine import DynamicDocument, BooleanField, \
-    URLField, DateTimeField, IntField, StringField, Document
+    URLField, DateTimeField, IntField, StringField, Document, PointField
 from datetime import datetime
 
 __author__ = 'João Trevizoli Esteves'
@@ -31,8 +31,10 @@ class Country(Document):
 
 
 class Normals(DynamicDocument):
-    url = URLField(required=True)
+    city = StringField(required=True)
+    country = StringField(required=True)
+    point = PointField(required=True)
+    url = URLField(required=True, unique=True)
     updated_at = DateTimeField(required=True, default=datetime.utcnow())
     access_success = BooleanField(default=False)
-    status_code = IntField(required=True)
-    content = StringField(required=True)
+    status_code = IntField(required=False)
