@@ -1,9 +1,8 @@
-from bots import RequestHandler
+from spider import RequestHandler
 from mongoengine import connect
-
+from spider import *
 connect("climatemps")
 
 if __name__ == '__main__':
-    base_url = "http://www.climatemps.com/"
-    requester = RequestHandler(base_url)
-    print(requester.data)
+    test_normals_spider = NormalsSpider(url="http://www.visviri.climatemps.com/", print_errors=True)
+    print(test_normals_spider.normal_data)

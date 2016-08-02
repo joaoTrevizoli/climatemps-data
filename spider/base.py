@@ -3,7 +3,7 @@ from lxml import html
 from time import sleep
 from datetime import datetime
 from models import AccessControl, ErrorLog
-from bots.botsExceptions import *
+from spider.botsExceptions import *
 
 
 __author__ = 'João Trevizoli Esteves'
@@ -62,7 +62,7 @@ class RequestHandler(object):
 
         access_tries = 0
         request_log_data = {}
-        while access_tries < 3:
+        while access_tries < 5:
             try:
                 try:
                     self.data = requests.get(self.url)
@@ -70,7 +70,7 @@ class RequestHandler(object):
                         raise StatusError(u'The server returned an status'
                                           u'code diferent then 200: \n'
                                           u'it was {}'.format(self.data.status_code))
-                    access_tries = 3
+                    access_tries = 5
                     request_log_data["set__status_code"] = 200
                     request_log_data["set__access_success"] = True
                     request_log_data["set__content"] = self.data.text
@@ -82,7 +82,7 @@ class RequestHandler(object):
                     request_log_data["set__status_code"] = self.data.status_code
                     if self.print_errors:
                         print("StatusError: {}".format(self.data.status_code))
-                sleep(2)
+                sleep(3)
             except Exception as e:
                 error_info = ErrorInfo()
                 self._error_log(str(e), error_info.file_name, error_info.line_number)
