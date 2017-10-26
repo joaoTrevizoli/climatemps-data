@@ -4,12 +4,13 @@ from models import Normals, AccessControl
 from datetime import datetime
 from spider.botsExceptions import *
 from LatLon23 import string2latlon
+from slugify import slugify
 
 import warnings
 import re
 
 from mongoengine import connect
-connect("climatemps")
+connect("climatemps_test")
 
 
 def parse_date_time(date_string):
@@ -168,6 +169,14 @@ class NormalsSpider(RequestHandler):
         RequestHandler.__init__(self, url, print_errors)
         self.normal_data = {}
 
+    def get_normal_urls(self):
+        try:
+            if self._page_request():
+                hrefs = self._get_xpath("//table[@id='background-image']|//div[@class='table']/table/tbody")
+                return list(set(hrefs.xpath("./tr/td/a/@href")))
+
+        except Exception as e:
+                print(e)
     @property
     def normal_data(self):
         return self.__normal_data
@@ -177,9 +186,14 @@ class NormalsSpider(RequestHandler):
         self.__normal_data = normal_data
         try:
             if self._page_request():
-                normal_table = self._get_xpath("//table[@id='background-image']|//div[@class='table']/table")
+                normal_table = self._get_xpath("//table[@class='countrytable']")
                 months = normal_table.xpath("./thead/tr/th[@class='countrytable']/a/text()|"
                                             "./thead/tr/th[@scope='col']/a/text()")
+                # normal_table = self._get_xpath("//table[@id='background-image']|//div[@class='table']/table")
+                # months = normal_table.xpath("./thead/tr/th[@class='countrytable']/a/text()|"
+                #                             "./thead/tr/th[@scope='col']/a/text()")
+
+                print(normal_table, months)
                 january_index = months.index("Jan")
                 months = deque(months, maxlen=12)
                 months.rotate(january_index)
@@ -195,6 +209,7 @@ class NormalsSpider(RequestHandler):
                                      else float(j.replace("-", "0")) for j in data_list]
                     except:
                         pass
+                    variable_name = slugify(variable_name, word_boundary=True, separator="_")
                     self.__normal_data[variable_name] = data_list
         except Exception as e:
             error_info = ErrorInfo()
@@ -219,11 +234,11 @@ class NormalsSpider(RequestHandler):
                 print("Exception: {}, at line {}, file {}".format(e, error_info.line_number, error_info.file_name))
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 #     test_countries = CountryUrlFinder(print_errors=True)
 #     test_countries.update_country_urls()
 #
 #     test_city_url = CityUrlFinder(url="http://www.equatorial-guinea.climatemps.com/", country="Equatorial-Guinea", print_errors=True)
 #     print(test_city_url.city_data)
-    test_normals_spider = NormalsSpider(url="http://www.kabompo.climatemps.com/", print_errors=True)
-    print(test_normals_spider.update_normals_data())
+#     test_normals_spider = NormalsSpider(url="http://www.kabompo.climatemps.com/", print_errors=True)
+#     print(test_normals_spider.update_normals_data())

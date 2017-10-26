@@ -25,6 +25,9 @@ class RequestHandler(object):
         self.print_errors = print_errors
         self.data = None
         self.__request_control = False
+        self.__header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) '
+                                       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 '
+                                       'Safari/537.36'}
 
     def _request_log(self, **kwargs):
         """
@@ -65,7 +68,8 @@ class RequestHandler(object):
         while access_tries < 5:
             try:
                 try:
-                    self.data = requests.get(self.url)
+                    self.data = requests.get(self.url, headers=self.__header)
+                    print(self.data)
                     if self.data.status_code != 200:
                         raise StatusError(u'The server returned an status'
                                           u'code diferent then 200: \n'

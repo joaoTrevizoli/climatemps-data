@@ -4,7 +4,7 @@ from mongoengine.connection import disconnect, connect
 from threading import Thread
 import sys
 from queue import LifoQueue
-connect("climatemps")
+connect("climatemps_test")
 
 
 class Worker(object):
