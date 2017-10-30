@@ -184,38 +184,47 @@ class NormalsSpider(RequestHandler):
     @normal_data.setter
     def normal_data(self, normal_data):
         self.__normal_data = normal_data
-        try:
-            if self._page_request():
-                normal_table = self._get_xpath("//table[@class='countrytable']")
-                months = normal_table.xpath("./thead/tr/th[@class='countrytable']/a/text()|"
-                                            "./thead/tr/th[@scope='col']/a/text()")
-                # normal_table = self._get_xpath("//table[@id='background-image']|//div[@class='table']/table")
-                # months = normal_table.xpath("./thead/tr/th[@class='countrytable']/a/text()|"
-                #                             "./thead/tr/th[@scope='col']/a/text()")
+        base_url = self.url
+        urls = ["{}{}".format(base_url, i) for i in self.get_normal_urls()]
+        print(urls)
+        for i in urls:
+            self.url = i
 
-                print(normal_table, months)
-                january_index = months.index("Jan")
-                months = deque(months, maxlen=12)
-                months.rotate(january_index)
-                for i in normal_table.xpath("./tbody/tr"):
-                    try:
-                        variable_name = i.xpath("./td[@class='countrytable']/div/@alt|./td[@class='countrytable']/img/@alt")[0]
-                        variable_name = variable_name.replace(" icon", "")
-                        data_list = i.xpath("./td[@class='countrytable']/text()")[:-1]
-                        data_list = list(filter(lambda item: item != ' ', data_list))
-                        data_list = deque([re.sub(r' \(-?\d+\)', '', j) for j in data_list], 12)
-                        data_list.rotate(january_index)
-                        data_list = [parse_date_time(j) if re.match(r'(\d+h \d+\')|(\d+:\d+)', j)
-                                     else float(j.replace("-", "0")) for j in data_list]
-                    except:
-                        pass
-                    variable_name = slugify(variable_name, word_boundary=True, separator="_")
-                    self.__normal_data[variable_name] = data_list
-        except Exception as e:
-            error_info = ErrorInfo()
-            self._error_log(str(e), error_info.file_name, error_info.line_number)
-            if self.print_errors:
-                print("Exception: {}, at line {}, file {}".format(e, error_info.line_number, error_info.file_name))
+            try:
+                if self._page_request():
+                    normal_table = self._get_xpath("//table[@class='countrytable']")
+                    months = normal_table.xpath("./thead/tr/th[@class='countrytable']/a/text()|"
+                                                "./thead/tr/th[@scope='col']/a/text()")
+                    # normal_table = self._get_xpath("//table[@id='background-image']|//div[@class='table']/table")
+                    # months = normal_table.xpath("./thead/tr/th[@class='countrytable']/a/text()|"
+                    #                             "./thead/tr/th[@scope='col']/a/text()")
+
+                    january_index = months.index("Jan")
+                    months = deque(months, maxlen=12)
+                    months.rotate(january_index)
+                    for i in normal_table.xpath("./tbody/tr"):
+                        try:
+                            variable_name = i.xpath("./td[@class='countrytable']/div/@alt|./td[@class='countrytable']/img/@alt")[0]
+                            variable_name = variable_name.replace(" icon", "")
+                            data_list = i.xpath("./td[@class='countrytable']/text()")[:-1]
+                            print(data_list)
+                            data_list = list(filter(lambda item: item != ' ', data_list))
+                            data_list = deque([re.sub(r' \(-?\d+(.\d+|)\)', '', j) for j in data_list], 12)
+                            data_list.rotate(january_index)
+                            print(data_list)
+                            data_list = [parse_date_time(j) if re.match(r'(\d+h \d+\')|(\d+:\d+)', j)
+                                         else float(j.replace("-", "0")) for j in data_list]
+                        except Exception:
+                            pass
+                        variable_name = slugify(variable_name, word_boundary=True, separator="_")
+                        self.__normal_data[variable_name] = data_list
+
+            except Exception as e:
+                error_info = ErrorInfo()
+                self._error_log(str(e), error_info.file_name, error_info.line_number)
+                if self.print_errors:
+                    print("Exception: {}, at line {}, file {}".format(e, error_info.line_number, error_info.file_name))
+        self.url = base_url
 
     def update_normals_data(self):
         normal_data = {"set__updated_at": datetime.utcnow(),
@@ -242,3 +251,6 @@ class NormalsSpider(RequestHandler):
 #     print(test_city_url.city_data)
 #     test_normals_spider = NormalsSpider(url="http://www.kabompo.climatemps.com/", print_errors=True)
 #     print(test_normals_spider.update_normals_data())
+
+    teste = "29.2 (84.6)"
+    teste2 = "29.2 (84)"
