@@ -44,7 +44,7 @@ class Worker(object):
             normals = Normals.objects(access_success=False)[:5]
 
     def start(self):
-        self.__get_countries()
+        # self.__get_countries()
         # self.get_cities()
         self.update_normals()
 
@@ -76,7 +76,7 @@ class ThreadedNormalWorker(object):
         self.queue.join()
 
 if __name__ == '__main__':
-    # worker = Worker(print_errors=True)
-    # worker.start()
-    worker = ThreadedNormalWorker(print_errors=True)
-    worker.start(10)
+    worker = Worker(print_errors=True)
+    worker.start()
+    # worker = ThreadedNormalWorker(print_errors=True)
+    # worker.start(10)
