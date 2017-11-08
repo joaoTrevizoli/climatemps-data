@@ -213,9 +213,11 @@ class NormalsSpider(RequestHandler):
                                 data_list = list(filter(lambda item: item != ' ', data_list))
                                 data_list = deque([re.sub(r' \(-?\d+(.\d+|%|)\)', '', j) for j in data_list], 12)
                                 data_list.rotate(january_index)
+                                data_list = ['-9999.0' if i.strip() == '-' else i for i in data_list]
                                 data_list = [parse_date_time(j) if re.match(r'(\d+h \d+\')|(\d+:\d+)', j)
-                                             else float(j.replace("-", "0")) for j in data_list]
-                            except Exception:
+                                             else float(j) for j in data_list]
+                            except Exception as e:
+                                print(e)
                                 pass
                             variable_name = slugify(variable_name, word_boundary=True, separator="_")
                             self.__normal_data[variable_name] = data_list
