@@ -45,8 +45,8 @@ class Worker(object):
 
     def start(self):
         # self.__get_countries()
-        # self.get_cities()
-        self.update_normals()
+        self.get_cities()
+        # self.update_normals()
 
 
 class ThreadedNormalWorker(object):

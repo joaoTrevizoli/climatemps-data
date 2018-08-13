@@ -76,7 +76,7 @@ class CityUrlFinder(RequestHandler):
                 city_data_table = self._get_xpath("//table[@id='background-image']/tbody")
                 for tr in city_data_table:
                     try:
-                        contents = [re.sub(r' \(\d+\)', '', str(i.lower()))
+                        contents = [re.sub(r' \(\d+\)', '', str(i))
                                     for i in tr.xpath("./td/text()|./td/a/text()")[:-2]]
                         normal_url = str(tr.xpath("./td/a/@href")[0])
                     except Exception as e:
@@ -88,7 +88,11 @@ class CityUrlFinder(RequestHandler):
                         raise BadXpath(u'The page structure probably '
                                        u'has changed, please verify the source html.')
                     try:
-                        lat_lon = (string2latlon(contents[1], contents[2], "d%°%m%'%h"))
+
+                        print("primeiro try:", contents)
+
+                        lat_lon = (string2latlon(contents[1], contents[2], "d%°%m%'%H"))
+                        print(lat_lon)
                         contents[1], contents[2] = lat_lon.lon.decimal_degree, lat_lon.lat.decimal_degree
                     except:
                         raise BadXpath("wrong path")
@@ -98,11 +102,11 @@ class CityUrlFinder(RequestHandler):
                         contents[3] = None
                     content_dict = {"url": normal_url,
                                     "country": self.country,
-                                    "city": contents[0],
+                                    "city": contents[0].lower(),
                                     "point": contents[1:3],
                                     "altitude": contents[3],
                                     "climate": contents[4],
-                                    "biome": contents[5]}
+                                    "biome": contents[5].lower()}
 
                     self.city_data.append(content_dict)
             except BadXpath:
@@ -112,8 +116,9 @@ class CityUrlFinder(RequestHandler):
                     geo_data = geo_data.split(",", 1)
 
                     point = re.findall(r"\d+°\d+'\S{1}", geo_data[1])
-                    lat_lon = (string2latlon(point[0], point[1], "d%°%m%'%h"))
-
+                    print("segundo try: ", point)
+                    lat_lon = (string2latlon(point[0], point[1], "d%°%m%'%H"))
+                    print(lat_lon)
                     city = geo_data[0]
                     point = [lat_lon.lon.decimal_degree, lat_lon.lat.decimal_degree]
                     altitude = float(re.findall(r"(\d+)\s+?m\s+?.*?\(-?\d+ ft\)", geo_data[1])[0])
@@ -121,18 +126,18 @@ class CityUrlFinder(RequestHandler):
                     classification = "".join(classification)
 
                     try:
-                        biome = re.findall(r"has a (.*) climate \(", classification)[0].lower()
+                        biome = re.findall(r"has a (.*) climate \(", classification)[0]
                     except:
                         biome = None
 
-                    climate = re.findall(r"-Geiger classification: (\w+)\)", classification)[0].lower()
+                    climate = re.findall(r"-Geiger classification: (\w+)\)", classification)[0]
 
                     content_dict = {"url": self.url,
-                                    "country": self.country,
+                                    "country": self.country.lower(),
                                     "city": city.lower(),
                                     "point": point,
                                     "altitude": altitude,
-                                    "climate": climate,
+                                    "climate": climate.lower(),
                                     "biome": biome}
                     self.city_data.append(content_dict)
 
