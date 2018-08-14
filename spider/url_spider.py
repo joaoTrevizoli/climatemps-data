@@ -178,7 +178,8 @@ class NormalsSpider(RequestHandler):
     def get_normal_urls(self):
         try:
             if self._page_request():
-                hrefs = self._get_xpath("//table[@id='background-image']|//div[@class='table']/table/tbody")
+                hrefs = self._get_xpath("//table[@id='background-image']|"
+                                        "//div[@class='table']/table/tbody")
                 return list(set(hrefs.xpath("./tr/td/a/@href")))
 
         except Exception as e:
@@ -195,7 +196,6 @@ class NormalsSpider(RequestHandler):
             urls = ["{}{}".format(base_url, i) for i in self.get_normal_urls()]
             for i in urls:
                 self.url = i
-
                 try:
                     if self._page_request():
                         normal_table = self._get_xpath("//table[@class='countrytable']")
@@ -233,6 +233,7 @@ class NormalsSpider(RequestHandler):
                     if self.print_errors:
                         print("Exception: {}, at line {}, file {}".format(e, error_info.line_number, error_info.file_name))
             self.url = base_url
+
         except Exception as e:
             error_info = ErrorInfo()
             self._error_log(str(e), error_info.file_name, error_info.line_number)
@@ -244,7 +245,6 @@ class NormalsSpider(RequestHandler):
                        "set__new": False,
                        "set__access_success": True
                        }
-
         try:
             self.normal_data.update(normal_data)
             Normals.objects(url=self.url).update(**self.normal_data)
